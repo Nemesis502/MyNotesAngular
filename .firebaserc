@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "mynotes-eda96": {
+      "hosting": {
+        "danotes": [
+          "mynotes-eda96"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "mynotes-eda96"
+  }
+}
