@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Note } from '../interfaces/note.interface';
-import { Firestore, collectionData, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collectionData, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, limit, where, orderBy, DocumentData, QuerySnapshot } from '@angular/fire/firestore';
 import { elementAt, Observable } from 'rxjs';
 
 @Injectable({
@@ -10,14 +10,17 @@ export class NoteListService {
 
   trashNotes: Note[] = [];
   normalNotes: Note[] = [];
+  normalMarkedNotes: Note[] = [];
 
   firestore: Firestore = inject(Firestore);
 
   unsubNote;
   unsubTrash;
+  unsubMarkedNotes;
 
   constructor() {
     this.unsubNote = this.subNotesList();
+    this.unsubMarkedNotes = this.subMarkedNotesList();
     this.unsubTrash = this.subTrashlist()
   }
 
@@ -72,6 +75,7 @@ export class NoteListService {
   ngonDestroy() {
     this.unsubNote();
     this.unsubTrash();
+    this.unsubMarkedNotes();
   }
 
   subTrashlist() {
@@ -84,10 +88,38 @@ export class NoteListService {
   }
 
   subNotesList() {
-    return onSnapshot(this.getNotesRef(), (list) => {
+    // let ref = collection(this.firestore, "notes/116RW5dT2cGPEEg6BQts/notesExtra"); Für Test der Subcollection, ref als Variable bei getNotesRef() bei query(this.getNotesRef() einfügen.
+    const q = query(this.getNotesRef(), limit(100));
+    return onSnapshot(q, (list) => {
       this.normalNotes = [];
       list.forEach(element => {
         this.normalNotes.push(this.setNoteObject(element.data(), element.id));
+      })
+      this.changeLog(list)
+    });
+    
+  }
+
+  changeLog(list: QuerySnapshot<DocumentData, DocumentData>){
+    list.docChanges().forEach((change) => {
+      if (change.type === "added") {
+          console.log("New note: ", change.doc.data());
+      }
+      if (change.type === "modified") {
+          console.log("Modified note: ", change.doc.data());
+      }
+      if (change.type === "removed") {
+          console.log("Removed note: ", change.doc.data());
+      }
+    });
+  }
+
+  subMarkedNotesList() {
+    const q = query(this.getNotesRef(), where("marked", "==", true), limit(100));
+    return onSnapshot(q, (list) => {
+      this.normalMarkedNotes = [];
+      list.forEach(element => {
+        this.normalMarkedNotes.push(this.setNoteObject(element.data(), element.id));
       })
     });
   }

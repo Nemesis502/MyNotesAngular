@@ -24,10 +24,14 @@ export class NoteListComponent {
   }
 
   getlist(): Note[] {
-    if (this.status == "trash") {
-      return this.getTrashList();
+    if (this.status == "notes") {
+      if(this.favFilter == "all"){
+        return this.getNormalList();
+      } else {
+        return this.getNormalMarkedList();
+      }
     } else {
-      return this.getNormalList();
+      return this.getTrashList();
     }
   }
 
@@ -37,6 +41,10 @@ export class NoteListComponent {
 
   getTrashList(): Note[]{
     return this.noteService.trashNotes;
+  }
+
+  getNormalMarkedList(): Note[]{
+    return this.noteService.normalMarkedNotes;
   }
 
   changeFavFilter(filter:"all" | "fav"){
